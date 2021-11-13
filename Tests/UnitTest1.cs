@@ -152,5 +152,59 @@ namespace Tests
                 Assert.IsTrue(b.Cross(a) == Vector(1, -2, 1));
             }
         }
+
+        [Test]
+        public void Chapter2()
+        {
+            {
+                var c = new Color(-0.5, 0.4, 1.7);
+                Assert.IsTrue(c.Red.Is(-0.5));
+                Assert.IsTrue(c.Green.Is(0.4));
+                Assert.IsTrue(c.Blue.Is(1.7));
+            }
+
+            {
+                var c1 = new Color(0.9, 0.6, 0.75);
+                var c2 = new Color(0.7, 0.1, 0.25);
+                Assert.IsTrue(c1 + c2 == new Color(1.6, 0.7, 1.0));
+            }
+            
+            {
+                var c1 = new Color(0.9, 0.6, 0.75);
+                var c2 = new Color(0.7, 0.1, 0.25);
+                Assert.IsTrue(c1 - c2 == new Color(0.2, 0.5, 0.5));
+            }
+
+            {
+                var c = new Color(0.2, 0.3, 0.4);
+                Assert.IsTrue( c * 2 == new Color(0.4,0.6, 0.8));
+            }
+
+            {
+                var c1 = new Color(1, 0.2, 0.4);
+                var c2 = new Color(0.9, 1, 0.1);
+                Assert.IsTrue(c1 * c2 == new Color(0.9, 0.2, 0.04));
+            }
+
+            {
+                var c = new Canvas(10, 20);
+                Assert.IsTrue(c.Width == 10);
+                Assert.IsTrue(c.Height == 20);
+                Assert.IsTrue(c.Is(new Color(0,0,0)));
+            }
+
+            {
+                var c = new Canvas(10, 20);
+                var red = new Color(1, 0, 0);
+                c[2, 3] = red;
+                Assert.IsTrue(c[2,3] == red);
+            }
+
+            {
+                var c = new Canvas(10, 20);
+                c[2, 3] = new Color(1, 0, 0);
+                c.Save("img/chapter2/001.png");
+            }
+        }
     }
 }
