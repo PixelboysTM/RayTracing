@@ -52,7 +52,7 @@ namespace RayTracing
 
         private int C(double c)
         {
-            return (int)Math.Clamp(c * 255, 0, 255);
+            return (int)System.Math.Clamp(c * 255, 0, 255);
         }
     }
 }

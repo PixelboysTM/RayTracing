@@ -6,12 +6,12 @@ namespace RayTracing
     {
         public static bool Is(this double a, double b)
         {
-            return Math.Abs(a - b) < Constant.Epsilon;
+            return System.Math.Abs(a - b) < Constant.Epsilon;
         }
 
         public static double Sqrt(this double value)
         {
-            return Math.Sqrt(value);
+            return System.Math.Sqrt(value);
         }
     }
 }

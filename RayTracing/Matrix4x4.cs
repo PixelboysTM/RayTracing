@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Data;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace RayTracing
@@ -275,5 +276,7 @@ namespace RayTracing
         {
             return (row + column) % 2 == 0 ? Minor(row, column) : -Minor(row, column);
         }
+
+        
     }
 }

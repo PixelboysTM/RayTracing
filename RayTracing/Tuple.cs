@@ -19,7 +19,7 @@ namespace RayTracing
 
         public bool IsPoint => W.Is(1.0);
         public bool IsVector => !IsPoint;
-        public double Magnitude => Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+        public double Magnitude => System.Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
         public Tuple Normalised => new Tuple(X, Y, Z, W) / Magnitude;
 
         public double Dot(Tuple b)

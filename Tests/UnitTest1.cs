@@ -6,6 +6,7 @@ using RayTracing;
 using Tuple = RayTracing.Tuple;
 using static RayTracing.Tuple;
 using Color = RayTracing.Color;
+using Math = RayTracing.Math;
 
 namespace Tests
 {
@@ -607,6 +608,159 @@ namespace Tests
                 };
                 var C = A * B;
                 Assert.IsTrue(C * B.Inverse == A);
+            }
+        }
+
+        [Test]
+        public void Chapter4()
+        {
+            {
+                var transform = Transformation.Translation(5, -3, 2);
+                var p = Point(-3, 4, 5);
+                Assert.IsTrue(transform * p == Point(2, 1, 7));
+            }
+
+            {
+                var transform = Transformation.Translation(5, -3, 2);
+                var inv = transform.Inverse;
+                var p = Point(-3, 4, 5);
+                Assert.IsTrue(inv * p == Point(-8,7,3));
+            }
+
+            {
+                var transform = Transformation.Translation(5, -3, 2);
+                var v = Vector(-3, 4, 5);
+                Assert.IsTrue(transform * v == v);
+            }
+
+            {
+                var transform = Transformation.Scaling(2, 3, 4);
+                var p = Point(-4, 6, 8);
+                Assert.IsTrue(transform * p == Point(-8,18,32));
+            }
+
+            {
+                var transform = Transformation.Scaling(2, 3, 4);
+                var v = Vector(-4, 6, 8);
+                Assert.IsTrue(transform * v == Vector(-8,18,32));
+            }
+
+            {
+                var transform = Transformation.Scaling(2, 3, 4);
+                var inv = transform.Inverse;
+                var v = Vector(-4, 6, 8);
+                Assert.IsTrue(inv * v == Vector(-2,2,2));
+            }
+
+            {
+                var transform = Transformation.Scaling(-1, 1, 1);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(-2,3,4));
+            }
+
+            {
+                Assert.IsTrue(Math.RadToDeg(1).Is(57.295779));
+                Assert.IsTrue(Math.DegToRad(180).Is(System.Math.PI));
+                Assert.IsTrue(Math.Sin(Math.Pi*2).Is(0));
+            }
+
+            {
+                var p = Point(0, 1, 0);
+                var halfQuarter = Transformation.RotationX(Math.Pi / 4.0);
+                var fullQuarter = Transformation.RotationX(Math.Pi / 2.0);
+                Assert.IsTrue(halfQuarter * p == Point(0, 2.0.Sqrt()/2.0,2.0.Sqrt()/2.0));
+                Assert.IsTrue(fullQuarter * p == Point(0, 0,1));
+            }
+
+            {
+                var p = Point(0, 1, 0);
+                var halfQuarter = Transformation.RotationX(Math.Pi / 4.0);
+                var inv = halfQuarter.Inverse;
+                Assert.IsTrue(inv * p == Point(0, 2.0.Sqrt()/2.0,-2.0.Sqrt()/2.0));
+            }
+
+            {
+                var p = Point(0, 0, 1);
+                var halfQuarter = Transformation.RotationY(Math.Pi / 4.0);
+                var fullQuarter = Transformation.RotationY(Math.Pi / 2.0);
+                Assert.IsTrue(halfQuarter * p == Point(2.0.Sqrt()/2.0,0,2.0.Sqrt()/2.0));
+                Assert.IsTrue(fullQuarter * p == Point(1,0,0));
+            }
+
+            {
+                var p = Point(0, 1, 0);
+                var halfQuarter = Transformation.RotationZ(Math.Pi / 4.0);
+                var fullQuarter = Transformation.RotationZ(Math.Pi / 2.0);
+                Assert.IsTrue(halfQuarter * p == Point(-2.0.Sqrt()/2.0,2.0.Sqrt()/2.0,0));
+                Assert.IsTrue(fullQuarter * p == Point(-1,0,0));
+            }
+
+            {
+                var transform = Transformation.Shearing(1, 0, 0, 0, 0, 0);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(5,3,4));
+            }
+            
+            {
+                var transform = Transformation.Shearing(0, 1, 0, 0, 0, 0);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(6,3,4));
+            }
+            
+            {
+                var transform = Transformation.Shearing(0, 0, 1, 0, 0, 0);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(2,5,4));
+            }
+            
+            {
+                var transform = Transformation.Shearing(0, 0, 0, 1, 0, 0);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(2,7,4));
+            }
+            
+            {
+                var transform = Transformation.Shearing(0, 0, 0, 0, 1, 0);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(2,3,6));
+            }
+            
+            {
+                var transform = Transformation.Shearing(0, 0, 0, 0, 0, 1);
+                var p = Point(2, 3, 4);
+                Assert.IsTrue(transform * p == Point(2,3,7));
+            }
+
+            {
+                var p = Point(1, 0, 1);
+                var A = Transformation.RotationX(Math.Pi / 2.0);
+                var B = Transformation.Scaling(5, 5, 5);
+                var C = Transformation.Translation(10, 5, 7);
+
+                var p2 = A * p;
+                Assert.IsTrue(p2 == Point(1,-1,0));
+
+                var p3 = B * p2;
+                Assert.IsTrue(p3 == Point(5, -5, 0));
+
+                var p4 = C * p3;
+                Assert.IsTrue(p4 == Point(15,0,7));
+            }
+
+            {
+                var p = Point(1, 0, 1);
+                var A = Transformation.RotationX(Math.Pi / 2.0);
+                var B = Transformation.Scaling(5, 5, 5);
+                var C = Transformation.Translation(10, 5, 7);
+
+                var T = C * B * A;
+                Assert.IsTrue(T * p == Point(15, 0, 7));
+            }
+
+            {
+                var p = Point(1, 0, 1);
+                var T = Transformation.Translate(10, 5, 7).Scale(5, 5, 5).Rotate(Math.Pi / 2.0, 0, 0).Build;
+                Assert.IsTrue(T * p == Point(15, 0, 7));
             }
         }
     }
