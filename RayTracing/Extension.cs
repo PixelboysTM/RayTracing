@@ -13,5 +13,16 @@ namespace RayTracing
         {
             return System.Math.Sqrt(value);
         }
+
+        public static Intersection Hit(this Intersection[] intersections)
+        {
+            for (var i = 0; i < intersections.Length; i++)
+            {
+                if (intersections[i].t >= 0)
+                    return intersections[i];
+            }
+
+            return null;
+        }
     }
 }

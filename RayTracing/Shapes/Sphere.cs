@@ -1,0 +1,30 @@
+﻿using System;
+
+namespace RayTracing.Shapes
+{
+    public class Sphere
+    {
+        public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
+        
+        public Intersection[] Intersect(Ray ray)
+        {
+            var ray2 = ray.Transform(Transform.Inverse);
+            
+            var sphereToRay = ray2.Origin - Tuple.Point(0, 0, 0);
+            
+            var a = ray2.Direction.Dot(ray2.Direction);
+            var b = 2 * ray2.Direction.Dot(sphereToRay);
+            var c = sphereToRay.Dot(sphereToRay) - 1;
+
+            var discriminant = b * b - 4 * a * c;
+
+            if (discriminant < 0)
+                return Array.Empty<Intersection>();
+
+            var t1 = (-b - discriminant.Sqrt()) / (2.0 * a);
+            var t2 = (-b + discriminant.Sqrt()) / (2.0 * a);
+
+            return new[] { new Intersection(t1, this), new Intersection(t2, this) };
+        }
+    }
+}

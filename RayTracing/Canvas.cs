@@ -6,12 +6,12 @@ namespace RayTracing
 {
     public class Canvas
     {
-        public uint Width { get; init; }
-        public uint Height { get; init; }
+        public int Width { get; init; }
+        public int Height { get; init; }
 
         private Color[,] _data;
 
-        public Canvas(uint width, uint height)
+        public Canvas(int width, int height)
         {
             Width = width;
             Height = height;
@@ -46,6 +46,8 @@ namespace RayTracing
                     bitmap.SetPixel(x, y, System.Drawing.Color.FromArgb(255, C(c.Red), C(c.Green), C(c.Blue)));
                 }
             }
+            if (file.Contains('/'))
+                Directory.CreateDirectory(file.Substring(0, file.LastIndexOf('/')));
             File.Create(file).Close();
             bitmap.Save(file);
         }

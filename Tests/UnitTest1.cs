@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RayTracing;
+using RayTracing.Shapes;
 using Tuple = RayTracing.Tuple;
 using static RayTracing.Tuple;
 using Color = RayTracing.Color;
@@ -761,6 +762,215 @@ namespace Tests
                 var p = Point(1, 0, 1);
                 var T = Transformation.Translate(10, 5, 7).Scale(5, 5, 5).Rotate(Math.Pi / 2.0, 0, 0).Build;
                 Assert.IsTrue(T * p == Point(15, 0, 7));
+            }
+        }
+
+        [Test]
+        public void Chapter5()
+        {
+            {
+                var origin = Point(1, 2, 3);
+                var direction = Vector(4, 5, 6);
+
+                var r = new Ray(origin, direction);
+                Assert.IsTrue(r.Origin == origin);
+                Assert.IsTrue(r.Direction == direction);
+            }
+
+            {
+                var r = new Ray(Point(2, 3, 4), Vector(1, 0, 0));
+                Assert.IsTrue(r.Position(0) == Point(2,3,4));
+                Assert.IsTrue(r.Position(1) == Point(3,3,4));
+                Assert.IsTrue(r.Position(-1) == Point(1,3,4));
+                Assert.IsTrue(r.Position(2.5) == Point(4.5,3,4));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(4.0));
+                Assert.IsTrue(xs[1].t.Is(6.0));
+            }
+
+            {
+                var r = new Ray(Point(0, 1, -5), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(5.0));
+                Assert.IsTrue(xs[1].t.Is(5.0));
+            }
+
+            {
+                var r = new Ray(Point(0, 2, -5), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 0);
+            }
+
+            {
+                var r = new Ray(Point(0, 0, 0), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(-1.0));
+                Assert.IsTrue(xs[1].t.Is(1.0));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, 5), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(-6.0));
+                Assert.IsTrue(xs[1].t.Is(-4.0));
+            }
+
+            {
+                var s = new Sphere();
+                var i = new Intersection(3.5, s);
+                Assert.IsTrue(i.t.Is(3.5));
+                Assert.IsTrue(i.Object == s);
+            }
+
+            {
+                var s = new Sphere();
+                var i1 = new Intersection(1, s);
+                var i2 = new Intersection(2, s);
+                var xs = Intersection.Combine(i1, i2);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(1));
+                Assert.IsTrue(xs[1].t.Is(2));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new Sphere();
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].Object == s);
+                Assert.IsTrue(xs[1].Object == s);
+            }
+
+            {
+                var s = new Sphere();
+                var i1 = new Intersection(1, s);
+                var i2 = new Intersection(2, s);
+                var xs = Intersection.Combine(i2, i1);
+                var i = xs.Hit();
+                Assert.IsTrue(i == i1);
+            }
+
+            {
+                var s = new Sphere();
+                var i1 = new Intersection(-1, s);
+                var i2 = new Intersection(1, s);
+                var xs = Intersection.Combine(i2, i1);
+                var i = xs.Hit();
+                Assert.IsTrue(i == i2);
+            }
+
+            {
+                var s = new Sphere();
+                var i1 = new Intersection(-2, s);
+                var i2 = new Intersection(-1, s);
+                var xs = Intersection.Combine(i2, i1);
+                var i = xs.Hit();
+                Assert.IsTrue(i is null);
+            }
+
+            {
+                var s = new Sphere();
+                var i1 = new Intersection(5, s);
+                var i2 = new Intersection(7, s);
+                var i3 = new Intersection(-3, s);
+                var i4 = new Intersection(2, s);
+                var xs = Intersection.Combine(i1, i2, i3, i4);
+                var i = xs.Hit();
+                Assert.IsTrue(i == i4);
+            }
+
+            {
+                var r = new Ray(Point(1, 2, 3), Vector(0, 1, 0));
+                var m = Transformation.Translation(3, 4, 5);
+                var r2 = r.Transform(m);
+                Assert.IsTrue(r2.Origin == Point(4,6,8));
+                Assert.IsTrue(r2.Direction == Vector(0,1,0));
+            }
+
+            {
+                var r = new Ray(Point(1, 2, 3), Vector(0, 1, 0));
+                var m = Transformation.Scaling(2, 3, 4);
+                var r2 = r.Transform(m);
+                Assert.IsTrue(r2.Origin == Point(2,6,12));
+                Assert.IsTrue(r2.Direction == Vector(0,3,0));
+            }
+
+            {
+                var s = new Sphere();
+                Assert.IsTrue(s.Transform == Matrix4x4.Identity);
+            }
+
+            {
+                var s = new Sphere();
+                var t = Transformation.Translation(2, 3, 4);
+                s.Transform = t;
+                Assert.IsTrue(s.Transform == t);
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new Sphere
+                {
+                    Transform = Transformation.Scaling(2, 2, 2)
+                };
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 2);
+                Assert.IsTrue(xs[0].t.Is(3));
+                Assert.IsTrue(xs[1].t.Is(7));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new Sphere
+                {
+                    Transform = Transformation.Translation(5, 0, 0)
+                };
+                var xs = s.Intersect(r);
+                Assert.IsTrue(xs.Length == 0);
+            }
+
+            {
+                var rayOrigin = Point(0, 0, -5);
+                var wallZ = 10.0;
+                var wallSize = 7.0;
+                var canvasPixels = 100;
+
+                var pixelSize = wallSize / canvasPixels;
+                var half = wallSize / 2.0;
+
+                var canvas = new Canvas(canvasPixels, canvasPixels);
+                var color = new Color(1, 0, 0);
+
+                var shape = new Sphere();
+
+                for (int y = 0; y < canvasPixels; y++)
+                {
+                    var worldY = half - pixelSize * y;
+                    for (int x = 0; x < canvasPixels; x++)
+                    {
+                        var worldX = -half + pixelSize * x;
+                        var position = Point(worldX, worldY, wallZ);
+                        var r = new Ray(rayOrigin, (position - rayOrigin).Normalised);
+                        var xs = shape.Intersect(r);
+                        if (xs.Hit() is not null)
+                            canvas[x, y] = color;
+                    }
+                }
+                
+                canvas.Save("img/Chapter5/img.png");
             }
         }
     }
