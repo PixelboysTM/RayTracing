@@ -83,5 +83,13 @@ namespace RayTracing
 
         public static Tuple Point(double x, double y, double z) => new(x, y, z, 1);
         public static Tuple Vector(double x, double y, double z) => new(x, y, z, 0);
+
+        public Tuple Reflect(Tuple normal)
+        {
+            if (IsPoint || normal.IsPoint)
+                throw new TypeAccessException("in and normal should be Vectors!");
+
+            return this - normal * 2 * this.Dot(normal);
+        }
     }
 }

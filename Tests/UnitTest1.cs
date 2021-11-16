@@ -1,8 +1,6 @@
-using System;
-using System.Drawing;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using RayTracing;
+using RayTracing.Light;
 using RayTracing.Shapes;
 using Tuple = RayTracing.Tuple;
 using static RayTracing.Tuple;
@@ -971,6 +969,199 @@ namespace Tests
                 }
                 
                 canvas.Save("img/Chapter5/img.png");
+            }
+        }
+
+        [Test]
+        public void Chapter6()
+        {
+            {
+                var s = new Sphere();
+                var n = s.NormalAt(Point(1, 0, 0));
+                Assert.IsTrue(n == Vector(1,0,0));
+            }
+
+            {
+                var s = new Sphere();
+                var n = s.NormalAt(Point(0, 1, 0));
+                Assert.IsTrue(n == Vector(0, 1, 0));
+            }
+
+            {
+                var s = new Sphere();
+                var n = s.NormalAt(Point(0, 0, 1));
+                Assert.IsTrue(n == Vector(0, 0, 1));
+            }
+
+            {
+                var s = new Sphere();
+                var n = s.NormalAt(Point(3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0));
+                Assert.IsTrue(n == Vector(3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0));
+            }
+
+            {
+                var s = new Sphere();
+                var n = s.NormalAt(Point(3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0, 3.0.Sqrt() / 3.0));
+                Assert.IsTrue(n == n.Normalised);
+            }
+
+            {
+                var s = new Sphere
+                {
+                    Transform = Transformation.Translation(0, 1, 0)
+                };
+                var n = s.NormalAt(Point(0, 1.70711, -0.70711));
+                Assert.IsTrue(n == Vector(0,0.70711, -0.70711));
+            }
+
+            {
+                var s = new Sphere
+                {
+                    Transform = Transformation.Scaling(1, 0.5, 1) * Transformation.RotationZ(Math.Pi / 5.0)
+                };
+                var n = s.NormalAt(Point(0, 2.0.Sqrt() / 2.0, -2.0.Sqrt() / 2.0));
+                Assert.IsTrue(n == Vector(0, 0.97014, -0.24254));
+            }
+
+            {
+                var v = Vector(1, -1, 0);
+                var n = Vector(0, 1, 0);
+                var r = v.Reflect(n);
+                Assert.IsTrue(r == Vector(1,1,0));
+            }
+
+            {
+                var v = Vector(0, -1, 0);
+                var n = Vector(2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0, 0);
+                var r = v.Reflect(n);
+                Assert.IsTrue(r == Vector(1,0,0));
+            }
+
+            {
+                var intensity = new Color(1, 1, 1);
+                var position = Point(0, 0, 0);
+                var light = new PointLight(position, intensity);
+                Assert.IsTrue(light.Position == position);
+                Assert.IsTrue(light.Intensity == intensity);
+            }
+
+            {
+                var m = new Material();
+                Assert.IsTrue(m.Color == new Color(1, 1, 1));
+                Assert.IsTrue(m.Ambient.Is(0.1));
+                Assert.IsTrue(m.Diffuse.Is(0.9));
+                Assert.IsTrue(m.Specular.Is(0.9));
+                Assert.IsTrue(m.Shininess.Is(200.0));
+            }
+
+            {
+                var s = new Sphere();
+                var m = s.Material;
+                Assert.IsTrue(m == new Material());
+            }
+
+            {
+                var s = new Sphere();
+                var m = new Material
+                {
+                    Ambient = 1
+                };
+                s.Material = m;
+                Assert.IsTrue(s.Material == m);
+            }
+
+            {
+                var m = new Material();
+                var position = Point(0, 0, 0);
+
+                {
+                    var eyev = Vector(0, 0, -1);
+                    var normalv = Vector(0, 0, -1);
+                    var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
+                    var result = m.Lighting(light, position, eyev, normalv);
+                    Assert.IsTrue(result == new Color(1.9, 1.9, 1.9));
+                }
+                
+                {
+                    var eyev = Vector(0, 2.0.Sqrt()/2.0, -2.0.Sqrt()/2.0);
+                    var normalv = Vector(0, 0, -1);
+                    var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
+                    var result = m.Lighting(light, position, eyev, normalv);
+                    Assert.IsTrue(result == new Color(1.0, 1.0, 1.0));
+                }
+                
+                {
+                    var eyev = Vector(0, 0, -1);
+                    var normalv = Vector(0, 0, -1);
+                    var light = new PointLight(Point(0, 10, -10), new Color(1, 1, 1));
+                    var result = m.Lighting(light, position, eyev, normalv);
+                    Assert.IsTrue(result == new Color(0.7364, 0.7364, 0.7364));
+                }
+                
+                {
+                    var eyev = Vector(0, -2.0.Sqrt()/2.0, -2.0.Sqrt()/2.0);
+                    var normalv = Vector(0, 0, -1);
+                    var light = new PointLight(Point(0, 10, -10), new Color(1, 1, 1));
+                    var result = m.Lighting(light, position, eyev, normalv);
+                    Assert.IsTrue(result == new Color(1.6364, 1.6364, 1.6364));
+                }
+                
+                {
+                    var eyev = Vector(0, 0, -1);
+                    var normalv = Vector(0, 0, -1);
+                    var light = new PointLight(Point(0, 0, 10), new Color(1, 1, 1));
+                    var result = m.Lighting(light, position, eyev, normalv);
+                    Assert.IsTrue(result == new Color(0.1, 0.1, 0.1));
+                }
+                
+            }
+            
+            {
+                var rayOrigin = Point(0, 0, -5);
+                var wallZ = 10.0;
+                var wallSize = 7.0;
+                var canvasPixels = 1920;
+
+                var pixelSize = wallSize / canvasPixels;
+                var half = wallSize / 2.0;
+
+                var canvas = new Canvas(canvasPixels, canvasPixels);
+                var color = new Color(1, 0, 0);
+
+                var shape = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0.2, 1)
+                    }
+                };
+                var light = new PointLight
+                {
+                    Position = Point(-10, 10, -10),
+                    Intensity = new Color(1, 1, 1)
+                };
+
+                for (int y = 0; y < canvasPixels; y++)
+                {
+                    var worldY = half - pixelSize * y;
+                    for (int x = 0; x < canvasPixels; x++)
+                    {
+                        var worldX = -half + pixelSize * x;
+                        var position = Point(worldX, worldY, wallZ);
+                        var r = new Ray(rayOrigin, (position - rayOrigin).Normalised);
+                        var xs = shape.Intersect(r);
+                        var hit = xs.Hit();
+                        if (hit is not null)
+                        {
+                            var point = r.Position(hit.t);
+                            var normal = hit.Object.NormalAt(point);
+                            var eye = -r.Direction;
+                            canvas[x, y] = hit.Object.Material.Lighting(light, point, eye, normal);
+                        }
+                    }
+                }
+                
+                canvas.Save("img/Chapter6/img.png");
             }
         }
     }

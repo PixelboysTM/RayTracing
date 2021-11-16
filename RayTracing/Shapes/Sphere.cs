@@ -5,6 +5,7 @@ namespace RayTracing.Shapes
     public class Sphere
     {
         public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
+        public Material Material { get; set; } = new();
         
         public Intersection[] Intersect(Ray ray)
         {
@@ -26,5 +27,15 @@ namespace RayTracing.Shapes
 
             return new[] { new Intersection(t1, this), new Intersection(t2, this) };
         }
+
+        public Tuple NormalAt(Tuple point)
+        {
+            var objectPoint = Transform.Inverse * point;
+            var objectNormal = (objectPoint - Tuple.Point(0, 0, 0));
+            var worldNormal = Transform.Inverse.Transpose * objectNormal;
+            worldNormal.W = 0;
+            return worldNormal.Normalised;
+        }
+            
     }
 }

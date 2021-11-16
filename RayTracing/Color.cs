@@ -55,5 +55,7 @@
         {
             return new Color(color.Red * scalar.Red, color.Green * scalar.Green, color.Blue * scalar.Blue);
         }
+
+        public static Color Black => new(0, 0, 0);
     }
 }
