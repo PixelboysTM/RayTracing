@@ -10,5 +10,15 @@
             Position = position;
             Intensity = intensity;
         }
+
+        public static bool operator ==(PointLight left, PointLight right)
+        {
+            return left.Intensity == right.Intensity && left.Position == right.Position;
+        }
+
+        public static bool operator !=(PointLight left, PointLight right)
+        {
+            return !(left == right);
+        }
     }
 }

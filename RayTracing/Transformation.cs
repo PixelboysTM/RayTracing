@@ -120,5 +120,24 @@
             
             public Matrix4x4 Build => _cScaling.Build * RotationX(_x) * RotationY(_y) * RotationZ(_z);
         }
+
+        public static Matrix4x4 View(Tuple from, Tuple to, Tuple up)
+        {
+            var forward = (to - from).Normalised;
+            var upn = up.Normalised;
+            var left = forward.Cross(upn);
+            var trueUp = left.Cross(forward);
+
+            var orientation = new Matrix4x4
+            {
+                {
+                    left.X, left.Y, left.Z, 0,
+                    trueUp.X, trueUp.Y, trueUp.Z, 0,
+                    -forward.X, -forward.Y, -forward.Z, 0,
+                    0, 0, 0, 1
+                }
+            };
+            return orientation * Translation(-from.X, -from.Y, -from.Z);
+        }
     }
 }

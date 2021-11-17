@@ -48,7 +48,7 @@ namespace RayTracing
 
         public static bool operator ==(Tuple left, Tuple right)
         {
-            return Equals(left, right);
+            return left.Equals(right);
         }
 
         public static bool operator !=(Tuple left, Tuple right)

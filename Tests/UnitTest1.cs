@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using NUnit.Framework;
 using RayTracing;
 using RayTracing.Light;
@@ -1120,7 +1121,7 @@ namespace Tests
                 var rayOrigin = Point(0, 0, -5);
                 var wallZ = 10.0;
                 var wallSize = 7.0;
-                var canvasPixels = 1920;
+                var canvasPixels = 100;
 
                 var pixelSize = wallSize / canvasPixels;
                 var half = wallSize / 2.0;
@@ -1161,7 +1162,295 @@ namespace Tests
                     }
                 }
                 
-                canvas.Save("img/Chapter6/img.png");
+                canvas.Save("img/Chapter6/imgt.png");
+            }
+        }
+
+        [Test]
+        public void Chapter7()
+        {
+            {
+                var w = new World();
+                Assert.IsTrue(w.Objects.Count == 0);
+                Assert.IsTrue(w.Light is null);
+            }
+
+            {
+                var light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
+                var s1 = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color(0.8, 1.0, 0.6),
+                        Diffuse = 0.7,
+                        Specular = 0.2
+                    }
+                };
+                var s2 = new Sphere
+                {
+                    Transform = Transformation.Scaling(0.5, 0.5, 0.5)
+                };
+                var w = World.Default;
+                Assert.IsTrue(w.Light == light);
+                Assert.IsTrue(w.Contains(s1));
+                Assert.IsTrue(w.Contains(s2));
+            }
+
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var xs = w.IntersectWorld(r);
+                Assert.IsTrue(xs.Length == 4);
+                Assert.IsTrue(xs[0].t.Is(4));
+                Assert.IsTrue(xs[1].t.Is(4.5));
+                Assert.IsTrue(xs[2].t.Is(5.5));
+                Assert.IsTrue(xs[3].t.Is(6));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var shape = new Sphere();
+                var i = new Intersection(4, shape);
+                var comps = i.PrepareComputations(r);
+                Assert.IsTrue(comps.t.Is(i.t));
+                Assert.IsTrue(comps.Object == i.Object);
+                Assert.IsTrue(comps.Point == Point(0,0,-1));
+                Assert.IsTrue(comps.EyeV == Vector(0,0,-1));
+                Assert.IsTrue(comps.NormalV == Vector(0,0,-1));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                Sphere shape = new Sphere();
+                var i = new Intersection(4, shape);
+                var comps = i.PrepareComputations(r);
+                Assert.IsFalse(comps.Inside);
+            }
+
+            {
+                var r = new Ray(Point(0, 0, 0), Vector(0, 0, 1));
+                var shape = new Sphere();
+                var i = new Intersection(1, shape);
+                var comps = i.PrepareComputations(r);
+                Assert.IsTrue(comps.Point == Point(0,0,1));
+                Assert.IsTrue(comps.EyeV == Vector(0,0,-1));
+                Assert.IsTrue(comps.Inside);
+                Assert.IsTrue(comps.NormalV == Vector(0,0,-1));
+            }
+
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var shape = w.Objects[0];
+                var i = new Intersection(4, shape);
+                var comps = i.PrepareComputations(r);
+                var c = w.ShadeHit(comps);
+                Assert.IsTrue(c == new Color(0.38066, 0.47583, 0.2855));
+            }
+
+            {
+                var w = World.Default;
+                w.Light = new PointLight(Point(0, 0.25, 0), new Color(1, 1, 1));
+                var r = new Ray(Point(0, 0, 0), Vector(0, 0, 1));
+                var shape = w.Objects[1];
+                var i = new Intersection(0.5, shape);
+                var comps = i.PrepareComputations(r);
+                var c = w.ShadeHit(comps);
+                Assert.IsTrue(c == new Color(0.90498, 0.90498, 0.90498));
+            }
+
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, -5), Vector(0, 1, 0));
+                var c = w.ColorAt(r);
+                Assert.IsTrue(c == new Color(0,0,0));
+            }
+            
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var c = w.ColorAt(r);
+                Assert.IsTrue(c == new Color(0.38066,0.47583,0.2855));
+            }
+
+            {
+                var w = World.Default;
+                var outer = w.Objects[0];
+                outer.Material.Ambient = 1;
+                var inner = w.Objects[1];
+                inner.Material.Ambient = 1;
+                var r = new Ray(Point(0, 0, 0.75), Vector(0, 0, -1));
+                var c = w.ColorAt(r);
+                Assert.IsTrue(c == inner.Material.Color);
+            }
+
+            {
+                var from = Point(0, 0, 0);
+                var to = Point(0, 0, -1);
+                var up = Vector(0, 1, 0);
+                var t = Transformation.View(from, to, up);
+                Assert.IsTrue(t == Matrix4x4.Identity);
+            }
+
+            {
+                var from = Point(0, 0, 0);
+                var to = Point(0, 0, 1);
+                var up = Vector(0, 1, 0);
+                var t = Transformation.View(from, to, up);
+                Assert.IsTrue(t == Transformation.Scaling(-1,1,-1));
+            }
+
+            {
+                var from = Point(0, 0, 8);
+                var to = Point(0, 0, 0);
+                var up = Vector(0, 1, 0);
+                var t = Transformation.View(from, to, up);
+                Assert.IsTrue(t == Transformation.Translation(0, 0, -8));
+            }
+
+            {
+                var from = Point(1, 3, 2);
+                var to = Point(4, -2, 8);
+                var up = Vector(1, 1, 0);
+                var t = Transformation.View(from, to, up);
+                Assert.IsTrue(t == new Matrix4x4
+                {
+                    {
+                        -0.50709, 0.50709, 0.67612, -2.36643,
+                        0.76772, 0.60609, 0.12122, -2.82843,
+                        -0.35857, 0.59761, -0.71714, 0.00000,
+                        0.0, 0.0, 0.0, 1.0
+                    }
+                });
+            }
+
+            {
+                var hSize = 160;
+                var vSize = 120;
+                var fieldOfView = System.Math.PI/2.0;
+                var c = new Camera(hSize, vSize, fieldOfView);
+                Assert.IsTrue(c.HSize == 160);
+                Assert.IsTrue(c.VSize == 120);
+                Assert.IsTrue(c.FieldOfView.Is(Math.Pi/2.0));
+                Assert.IsTrue(c.Transform == Matrix4x4.Identity);
+            }
+
+            {
+                var c = new Camera(200, 125, Math.Pi/2.0);
+                Assert.IsTrue(c.PixelSize.Is(0.01));
+            }
+
+            {
+                var c = new Camera(125, 200, Math.Pi / 2.0);
+                Assert.IsTrue(c.PixelSize.Is(0.01));
+            }
+
+            {
+                var c = new Camera(201, 101, Math.Pi / 2.0);
+                var r = c.RayForPixel(100, 50);
+                Assert.IsTrue(r.Origin == Point(0,0,0));
+                Assert.IsTrue(r.Direction == Vector(0,0,-1));
+            }
+
+            {
+                var c = new Camera(201, 101, Math.Pi / 2.0);
+                var r = c.RayForPixel(0, 0);
+                Assert.IsTrue(r.Origin == Point(0,0,0));
+                Assert.IsTrue(r.Direction == Vector(0.66519,0.33259,-0.66851));
+            }
+
+            {
+                var c = new Camera(201, 101, Math.Pi / 2.0);
+                c.Transform = Transformation.RotationY(Math.Pi / 4.0) * Transformation.Translation(0, -2, 5);
+                var r = c.RayForPixel(100, 50);
+                Assert.IsTrue(r.Origin == Point(0,2,-5));
+                Assert.IsTrue(r.Direction == Vector(2.0.Sqrt()/2.0,0,-2.0.Sqrt()/2.0));
+            }
+
+            {
+                var w = World.Default;
+                var c = new Camera(11, 11, System.Math.PI / 2.0);
+                var from = Point(0, 0, -5);
+                var to = Point(0, 0, 0);
+                var up = Vector(0, 1, 0);
+                c.Transform = Transformation.View(from, to, up);
+                var image = c.Render(w);
+                Assert.IsTrue(image[5,5] == new Color(0.38066, 0.47583, 0.2855));
+                image.Save("img/Chapter7/1.png");
+            }
+
+            {
+                var floor = new Sphere
+                {
+                    Transform = Transformation.Scaling(10, 0.01, 10),
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0.9, 0.9),
+                        Specular = 0
+                    }
+                };
+
+                var leftWall = new Sphere
+                {
+                    Transform = Transformation.Translation(0, 0, 5) * Transformation.RotationY(-Math.Pi / 4.0) *
+                                Transformation.RotationX(Math.Pi / 2.0) * Transformation.Scaling(10, 0.01, 10), //NOTE: If not working Check Order on page 195
+                    Material = floor.Material
+                };
+
+                var rightWall = new Sphere
+                {
+                    Transform = Transformation.Translation(0, 0, 5) * Transformation.RotationY(Math.Pi / 4.0) *
+                                Transformation.RotationX(Math.Pi / 2.0) * Transformation.Scaling(10, 0.01, 10), //NOTE: If not working Check Order on page 195
+                    Material = floor.Material
+                };
+
+                var middle = new Sphere
+                {
+                    Transform = Transformation.Translation(-0.5, 1, 0.5),
+                    Material = new Material
+                    {
+                        Color = new Color(0.1, 1, 0.5),
+                        Diffuse = 0.7,
+                        Specular = 0.3
+                    }
+                };
+
+                var right = new Sphere
+                {
+                    Transform = Transformation.Translate(1.5, 0.5, -0.5).Scale(0.5, 0.5, 0.5).Build,
+                    Material = new Material
+                    {
+                        Color = new Color(0.5, 1, 0.1),
+                        Diffuse = 0.7,
+                        Specular = 0.3
+                    }
+                };
+
+                var left = new Sphere
+                {
+                    Transform = Transformation.Translate(-1.5, 0.33, -0.75).Scale(0.33, 0.33, 0.33).Build,
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0.8, 0.1),
+                        Diffuse = 0.7,
+                        Specular = 0.3
+                    }
+                };
+
+                var world = new World();
+                world.Objects.Add(floor);
+                world.Objects.Add(leftWall);
+                world.Objects.Add(rightWall);
+                world.Objects.Add(middle);
+                world.Objects.Add(left);
+                world.Objects.Add(right);
+
+                world.Light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
+                var camera = new Camera(100, 50, Math.Pi / 3.0);
+                camera.Transform = Transformation.View(Point(0, 1.5, -5), Point(0, 1, 0), Vector(0, 1, 0));
+
+                var canvas = camera.Render(world);
+                canvas.Save("img/Chapter7/2.png");
             }
         }
     }

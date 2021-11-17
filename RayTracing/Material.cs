@@ -16,8 +16,7 @@ namespace RayTracing
                 return true;
             if (left is null || right is null)
                 return false;
-            return left.Color == right.Color && left.Ambient.Is(right.Ambient) && left.Diffuse.Is(right.Diffuse) &&
-                   left.Specular.Is(right.Diffuse) && left.Specular.Is(right.Specular) &&
+            return left.Color == right.Color && left.Ambient.Is(right.Ambient) && left.Diffuse.Is(right.Diffuse) && left.Specular.Is(right.Specular) &&
                    left.Shininess.Is(right.Shininess);
         }
 

@@ -27,5 +27,27 @@ namespace RayTracing
             });
             return list.ToArray();
         }
+
+        public Computations PrepareComputations(Ray ray)
+        {
+            var comps = new Computations();
+
+            comps.t = t;
+            comps.Object = Object;
+
+            comps.Point = ray.Position(comps.t);
+            comps.EyeV = -ray.Direction;
+            comps.NormalV = comps.Object.NormalAt(comps.Point);
+
+            if (comps.NormalV.Dot(comps.EyeV) < 0.0)
+            {
+                comps.Inside = true;
+                comps.NormalV = -comps.NormalV;
+            }
+            else
+                comps.Inside = false;
+
+            return comps;
+        }
     }
 }

@@ -36,6 +36,19 @@ namespace RayTracing.Shapes
             worldNormal.W = 0;
             return worldNormal.Normalised;
         }
-            
+
+        public static bool operator ==(Sphere left, Sphere right)
+        {
+            if (left is null && right is null)
+                return true;
+            if (left is null || right is null)
+                return false;
+            return left.Material == right.Material && left.Transform == right.Transform;
+        }
+
+        public static bool operator !=(Sphere left, Sphere right)
+        {
+            return !(left == right);
+        }
     }
 }
