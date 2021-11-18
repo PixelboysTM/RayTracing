@@ -57,8 +57,10 @@ namespace RayTracing
 
         public Color ShadeHit(Computations comps)
         {
+            var shadowed = IsShadowed(comps.OverPoint);
+            
             if (Light != null)
-                return comps.Object.Material.Lighting(Light.Value, comps.Point, comps.EyeV, comps.NormalV);
+                return comps.Object.Material.Lighting(Light.Value, comps.Point, comps.EyeV, comps.NormalV, shadowed);
 
             throw new MemberAccessException("No Light is Specified");
         }
@@ -73,6 +75,23 @@ namespace RayTracing
             var comps = hit.PrepareComputations(ray);
             var c = ShadeHit(comps);
             return c;
+        }
+
+        public bool IsShadowed(Tuple point)
+        {
+            if (Light == null)
+                throw new NullReferenceException("No Light source set!");
+            
+            var v = Light.Value.Position - point;
+            var distance = v.Magnitude;
+
+            var direction = v.Normalised;
+            
+            var r = new Ray(point, direction);
+            var intersections = IntersectWorld(r);
+
+            var h = intersections.Hit();
+            return h is not null && h.t < distance;
         }
     }
 }

@@ -47,6 +47,8 @@ namespace RayTracing
             else
                 comps.Inside = false;
 
+            comps.OverPoint = comps.Point + comps.NormalV * Constant.Epsilon;
+
             return comps;
         }
     }

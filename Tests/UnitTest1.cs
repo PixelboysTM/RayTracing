@@ -1453,5 +1453,76 @@ namespace Tests
                 canvas.Save("img/Chapter7/2.png");
             }
         }
+
+        [Test]
+        public void Chapter8()
+        {
+            var m = new Material();
+            var position = Point(0, 0, 0);
+            
+            {
+                var eyeV = Vector(0, 0, -1);
+                var normalV = Vector(0, 0, -1);
+                var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
+                var inShadow = true;
+                var result = m.Lighting(light, position, eyeV, normalV, inShadow);
+                Assert.IsTrue(result == new Color(0.1, 0.1, 0.1));
+            }
+
+            {
+                var w = World.Default;
+                var p = Point(0, 10, 0);
+                Assert.IsFalse(w.IsShadowed(p));
+            }
+
+            {
+                var w = World.Default;
+                var p = Point(10, -10, 10);
+                Assert.IsTrue(w.IsShadowed(p));
+            }
+
+            {
+                var w = World.Default;
+                var p = Point(-20, 20, -20);
+                Assert.IsFalse(w.IsShadowed(p));
+            }
+
+            {
+                var w = World.Default;
+                var p = Point(-2, 2, -2);
+                Assert.IsFalse(w.IsShadowed(p));
+            }
+
+            {
+                var w = new World();
+                w.Light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
+                var s1 = new Sphere();
+                w.Objects.Add(s1);
+                var s2 = new Sphere
+                {
+                    Transform = Transformation.Translation(0, 0, 10)
+                };
+                w.Objects.Add(s2);
+
+                var r = new Ray(Point(0, 0, 5), Vector(0, 0, 1));
+                var i = new Intersection(4, s2);
+
+                var comps = i.PrepareComputations(r);
+                var c = w.ShadeHit(comps);
+                Assert.IsTrue(c == new Color(0.1,0.1,0.1));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var shape = new Sphere
+                {
+                    Transform = Transformation.Translation(0, 0, 1)
+                };
+                var i = new Intersection(5, shape);
+                var comps = i.PrepareComputations(r);
+                Assert.IsTrue(comps.OverPoint.Z < -Constant.Epsilon/2.0);
+                Assert.IsTrue(comps.Point.Z > comps.OverPoint.Z);
+            }
+        }
     }
 }

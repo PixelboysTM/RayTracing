@@ -10,5 +10,6 @@ namespace RayTracing
         public Tuple EyeV { get; set; }
         public Tuple NormalV { get; set; }
         public bool Inside { get; set; }
+        public Tuple OverPoint { get; set; }
     }
 }

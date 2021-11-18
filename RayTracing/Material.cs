@@ -25,7 +25,7 @@ namespace RayTracing
             return !(left == right);
         }
 
-        public Color Lighting(PointLight light, Tuple point, Tuple eyev, Tuple normalv)
+        public Color Lighting(PointLight light, Tuple point, Tuple eyev, Tuple normalv, bool inShadow = false)
         {
             var effectiveColor = Color * light.Intensity;
             var lightv = (light.Position - point).Normalised;
@@ -56,6 +56,8 @@ namespace RayTracing
                 }
             }
 
+            if (inShadow)
+                return ambient;
             return ambient + diffuse + specular;
         }
     }
