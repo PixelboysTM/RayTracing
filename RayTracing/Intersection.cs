@@ -48,6 +48,7 @@ namespace RayTracing
                 comps.Inside = false;
 
             comps.OverPoint = comps.Point + comps.NormalV * Constant.Epsilon;
+            comps.ReflectV = ray.Direction.Reflect(comps.NormalV);
 
             return comps;
         }

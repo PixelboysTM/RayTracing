@@ -12,6 +12,7 @@ namespace RayTracing
         public double Diffuse { get; set; } = 0.9;
         public double Specular { get; set; } = 0.9;
         public double Shininess { get; set; } = 200.0;
+        public double Reflective { get; set; } = 0.0;
 
         public static bool operator ==(Material left, Material right)
         {

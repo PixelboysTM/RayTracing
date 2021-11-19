@@ -55,17 +55,17 @@ namespace RayTracing
             return Intersection.Combine(xs.ToArray());
         }
 
-        public Color ShadeHit(Computations comps)
+        public Color ShadeHit(Computations comps, int remaining = Constant.MaxRecursionDepth)
         {
             var shadowed = IsShadowed(comps.OverPoint);
             
             if (Light != null)
-                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.Point, comps.EyeV, comps.NormalV, shadowed);
+                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.OverPoint, comps.EyeV, comps.NormalV, shadowed) + ReflectedColor(comps, remaining);
 
             throw new MemberAccessException("No Light is Specified");
         }
 
-        public Color ColorAt(Ray ray)
+        public Color ColorAt(Ray ray, int remaining = Constant.MaxRecursionDepth)
         {
             var xs = IntersectWorld(ray);
             var hit = xs.Hit();
@@ -73,7 +73,7 @@ namespace RayTracing
                 return Color.Black;
 
             var comps = hit.PrepareComputations(ray);
-            var c = ShadeHit(comps);
+            var c = ShadeHit(comps, remaining);
             return c;
         }
 
@@ -92,6 +92,16 @@ namespace RayTracing
 
             var h = intersections.Hit();
             return h is not null && h.t < distance;
+        }
+
+        public Color ReflectedColor(Computations comps, int remaining)
+        {
+            if (comps.Object.Material.Reflective == 0 || remaining < 1)
+                return Color.Black;
+
+            var reflectedRay = new Ray(comps.OverPoint, comps.ReflectV);
+            var color = ColorAt(reflectedRay, remaining-1);
+            return color * comps.Object.Material.Reflective;
         }
     }
 }

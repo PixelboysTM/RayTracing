@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 
 namespace RayTracing
 {
@@ -37,6 +38,11 @@ namespace RayTracing
         
         public void Save(string file)
         {
+            if (!OperatingSystem.IsWindows())
+            {
+                Console.WriteLine("Skipping save cause not on Windows!");
+                return;
+            }
             Bitmap bitmap = new Bitmap((int)Width, (int)Height);
             for (int x = 0; x < Width; x++)
             {

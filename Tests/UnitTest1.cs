@@ -1842,5 +1842,115 @@ namespace Tests
                 Assert.IsTrue(pattern.PatternAt(Point(0,0,1.01)) == Color.Black);
             }
         }
+
+        [Test]
+        public void Chapter11()
+        {
+            {
+                var m = new Material();
+                Assert.IsTrue(m.Reflective.Is(0));
+            }
+            
+            {
+                var shape = new Plane();
+                var r = new Ray(Point(0, 1, -1), Vector(0, -2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0));
+                var i = new Intersection(2.0.Sqrt(), shape);
+                var comps = i.PrepareComputations(r);
+                Assert.IsTrue(comps.ReflectV == Vector(0, 2.0.Sqrt()/2.0, 2.0.Sqrt()/2.0));
+            }
+
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, 0), Vector(0, 0, 1));
+                var shape = w.Objects[1];
+                shape.Material.Ambient = 1;
+                var i = new Intersection(1, shape);
+                var comps = i.PrepareComputations(r);
+                var color = w.ReflectedColor(comps, 4);
+                Assert.IsTrue(color == new Color(0,0,0));
+            }
+
+            {
+                var w = World.Default;
+                var shape = new Plane
+                {
+                    Material = new Material
+                    {
+                        Reflective = 0.5
+                    },
+                    Transform = Transformation.Translation(0, -1, 0)
+                };
+                w.Objects.Add(shape);
+                var r = new Ray(Point(0, 0, -3), Vector(0, -2.0.Sqrt()/2.0, 2.0.Sqrt()/2.0));
+                var i = new Intersection(2.0.Sqrt(), shape);
+                var comps = i.PrepareComputations(r);
+                var color = w.ReflectedColor(comps, 4);
+                Assert.IsTrue(color == new Color(0.190332, 0.237915, 0.1427492)); // Modified values
+            }
+
+            {
+                var w = World.Default;
+                var shape = new Plane
+                {
+                    Material = new Material
+                    {
+                        Reflective = 0.5
+                    },
+                    Transform = Transformation.Translation(0, -1, 0)
+                };
+                w.Objects.Add(shape);
+                var r = new Ray(Point(0, 0, -3), Vector(0, -2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0));
+                var i = new Intersection(2.0.Sqrt(), shape);
+                var comps = i.PrepareComputations(r);
+                var color = w.ShadeHit(comps);
+                Assert.IsTrue(color == new Color(0.8767577, 0.9243407, 0.8291746));
+            }
+
+            {
+                var w = new World();
+                w.Light = new PointLight(Point(0, 0, 0), new Color(1,1,1));
+                var lower = new Plane
+                {
+                    Material = new Material
+                    {
+                        Reflective = 1
+                    },
+                    Transform = Transformation.Translation(0, -1, 0)
+                };
+                w.Objects.Add(lower);
+
+                var upper = new Plane
+                {
+                    Material = new Material
+                    {
+                        Reflective = 1
+                    },
+                    Transform = Transformation.Translation(0, 1, 0)
+                };
+                w.Objects.Add(upper);
+
+                var r = new Ray(Point(0, 0, 0), Vector(0, 1, 0));
+                Assert.DoesNotThrow(() => w.ColorAt(r));
+            }
+
+            {
+                var w = World.Default;
+                var shape = new Plane
+                {
+                    Material = new Material
+                    {
+                        Reflective = 0.5
+                    },
+                    Transform = Transformation.Translation(0, -1, 0)
+                };
+                w.Objects.Add(shape);
+
+                var r = new Ray(Point(0, 0, -3), Vector(0, -2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0));
+                var i = new Intersection(2.0.Sqrt(), shape);
+                var comps = i.PrepareComputations(r);
+                var color = w.ReflectedColor(comps, 0);
+                Assert.IsTrue(color == Color.Black);
+            }
+        }
     }
 }
