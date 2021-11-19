@@ -1,9 +1,12 @@
 ﻿using RayTracing.Light;
+using RayTracing.Patterns;
+using RayTracing.Shapes;
 
 namespace RayTracing
 {
     public class Material
     {
+        public Pattern Pattern { get; set; } = null;
         public Color Color { get; set; } = new(1, 1, 1);
         public double Ambient { get; set; } = 0.1;
         public double Diffuse { get; set; } = 0.9;
@@ -17,7 +20,7 @@ namespace RayTracing
             if (left is null || right is null)
                 return false;
             return left.Color == right.Color && left.Ambient.Is(right.Ambient) && left.Diffuse.Is(right.Diffuse) && left.Specular.Is(right.Specular) &&
-                   left.Shininess.Is(right.Shininess);
+                   left.Shininess.Is(right.Shininess) && left.Pattern == right.Pattern;
         }
 
         public static bool operator !=(Material left, Material right)
@@ -25,9 +28,11 @@ namespace RayTracing
             return !(left == right);
         }
 
-        public Color Lighting(PointLight light, Tuple point, Tuple eyev, Tuple normalv, bool inShadow = false)
+        public Color Lighting(Shape obj, PointLight light, Tuple point, Tuple eyev, Tuple normalv, bool inShadow = false)
         {
-            var effectiveColor = Color * light.Intensity;
+            var color = Pattern?.PatternAtObject(obj, point) ?? Color;
+            
+            var effectiveColor = color * light.Intensity;
             var lightv = (light.Position - point).Normalised;
             var ambient = effectiveColor * Ambient;
 

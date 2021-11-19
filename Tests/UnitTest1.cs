@@ -3,6 +3,7 @@ using System.Numerics;
 using NUnit.Framework;
 using RayTracing;
 using RayTracing.Light;
+using RayTracing.Patterns;
 using RayTracing.Shapes;
 using Tuple = RayTracing.Tuple;
 using static RayTracing.Tuple;
@@ -1077,12 +1078,13 @@ namespace Tests
             {
                 var m = new Material();
                 var position = Point(0, 0, 0);
+                var obj = new Sphere();
 
                 {
                     var eyev = Vector(0, 0, -1);
                     var normalv = Vector(0, 0, -1);
                     var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
-                    var result = m.Lighting(light, position, eyev, normalv);
+                    var result = m.Lighting(obj, light, position, eyev, normalv);
                     Assert.IsTrue(result == new Color(1.9, 1.9, 1.9));
                 }
                 
@@ -1090,7 +1092,7 @@ namespace Tests
                     var eyev = Vector(0, 2.0.Sqrt()/2.0, -2.0.Sqrt()/2.0);
                     var normalv = Vector(0, 0, -1);
                     var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
-                    var result = m.Lighting(light, position, eyev, normalv);
+                    var result = m.Lighting(obj, light, position, eyev, normalv);
                     Assert.IsTrue(result == new Color(1.0, 1.0, 1.0));
                 }
                 
@@ -1098,7 +1100,7 @@ namespace Tests
                     var eyev = Vector(0, 0, -1);
                     var normalv = Vector(0, 0, -1);
                     var light = new PointLight(Point(0, 10, -10), new Color(1, 1, 1));
-                    var result = m.Lighting(light, position, eyev, normalv);
+                    var result = m.Lighting(obj, light, position, eyev, normalv);
                     Assert.IsTrue(result == new Color(0.7364, 0.7364, 0.7364));
                 }
                 
@@ -1106,7 +1108,7 @@ namespace Tests
                     var eyev = Vector(0, -2.0.Sqrt()/2.0, -2.0.Sqrt()/2.0);
                     var normalv = Vector(0, 0, -1);
                     var light = new PointLight(Point(0, 10, -10), new Color(1, 1, 1));
-                    var result = m.Lighting(light, position, eyev, normalv);
+                    var result = m.Lighting(obj, light, position, eyev, normalv);
                     Assert.IsTrue(result == new Color(1.6364, 1.6364, 1.6364));
                 }
                 
@@ -1114,7 +1116,7 @@ namespace Tests
                     var eyev = Vector(0, 0, -1);
                     var normalv = Vector(0, 0, -1);
                     var light = new PointLight(Point(0, 0, 10), new Color(1, 1, 1));
-                    var result = m.Lighting(light, position, eyev, normalv);
+                    var result = m.Lighting(obj, light, position, eyev, normalv);
                     Assert.IsTrue(result == new Color(0.1, 0.1, 0.1));
                 }
                 
@@ -1160,7 +1162,7 @@ namespace Tests
                             var point = r.Position(hit.t);
                             var normal = hit.Object.NormalAt(point);
                             var eye = -r.Direction;
-                            canvas[x, y] = hit.Object.Material.Lighting(light, point, eye, normal);
+                            canvas[x, y] = hit.Object.Material.Lighting(shape, light, point, eye, normal);
                         }
                     }
                 }
@@ -1462,13 +1464,14 @@ namespace Tests
         {
             var m = new Material();
             var position = Point(0, 0, 0);
-            
+
             {
+                var obj = new Sphere();
                 var eyeV = Vector(0, 0, -1);
                 var normalV = Vector(0, 0, -1);
                 var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
                 var inShadow = true;
-                var result = m.Lighting(light, position, eyeV, normalV, inShadow);
+                var result = m.Lighting(obj, light, position, eyeV, normalV, inShadow);
                 Assert.IsTrue(result == new Color(0.1, 0.1, 0.1));
             }
 
@@ -1689,6 +1692,154 @@ namespace Tests
                 c.Transform = Transformation.View(Point(0, 5, -12), Point(2, 2, 0), Vector(0, 1, 0));
                 var image = c.Render(w);
                 image.Save("img/Chapter9/1.png");
+            }
+        }
+
+        [Test]
+        public void Chapter10()
+        {
+            {
+                var pattern = new StripePattern(Color.White, Color.Black);
+
+                Assert.IsTrue(pattern.A == Color.White);
+                Assert.IsTrue(pattern.B == Color.Black);
+            }
+
+            {
+                var pattern = new StripePattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,1,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,2,0)) == Color.White);
+            }
+
+            {
+                var pattern = new StripePattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,1)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,2)) == Color.White);
+            }
+
+            {
+                var pattern = new StripePattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0.9,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(1,0,0)) == Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(-0.1,0,0)) == Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(-1.1,0,0)) == Color.White);
+            }
+
+            {
+                var obj = new Sphere();
+                var m = new Material();
+                m.Pattern = new StripePattern(Color.White, Color.Black);
+                m.Ambient = 1;
+                m.Diffuse = 0;
+                m.Specular = 0;
+                var eyeV = Vector(0, 0, -1);
+                var normalV = Vector(0, 0, -1);
+                var light = new PointLight(Point(0, 0, -10), new Color(1, 1, 1));
+                var c1 = m.Lighting(obj, light, Point(0.9, 0, 0), eyeV, normalV, false);
+                var c2 = m.Lighting(obj, light, Point(1.1, 0, 0), eyeV, normalV, false);
+                Assert.IsTrue(c1 == Color.White);
+                Assert.IsTrue(c2 == Color.Black);
+            }
+
+            {
+                var obj = new Sphere();
+                obj.Transform = Transformation.Scaling(2, 2, 2);
+                var pattern = new StripePattern(Color.White, Color.Black);
+                var c = pattern.PatternAtObject(obj, Point(1.5, 0, 0));
+                Assert.IsTrue(c == Color.White);
+            }
+
+            {
+                var obj = new Sphere();
+                var pattern = new StripePattern(Color.White, Color.Black);
+                pattern.Transform = Transformation.Scaling(2, 2, 2);
+                var c = pattern.PatternAtObject(obj, Point(1.5, 0, 0));
+                Assert.IsTrue(c == Color.White);
+            }
+
+            {
+                var obj = new Sphere();
+                obj.Transform = Transformation.Scaling(2, 2, 2);
+                var pattern = new StripePattern(Color.White, Color.Black);
+                pattern.Transform = Transformation.Translation(0.5, 0, 0);
+                var c = pattern.PatternAtObject(obj, Point(2.5, 0, 0));
+                Assert.IsTrue(c == Color.White);
+            }
+
+            {
+                var pattern = new TestPattern();
+                Assert.IsTrue(pattern.Transform == Matrix4x4.Identity);
+            }
+
+            {
+                var pattern = new TestPattern();
+                pattern.Transform = Transformation.Translation(1, 2, 3);
+                Assert.IsTrue(pattern.Transform == Transformation.Translation(1,2,3));
+            }
+
+            {
+                var shape = new Sphere();
+                shape.Transform = Transformation.Scaling(2, 2, 2);
+                var pattern = new TestPattern();
+                var c = pattern.PatternAtObject(shape, Point(2, 3, 4));
+                Assert.IsTrue(c == new Color(1,1.5,2));
+            }
+
+            {
+                var shape = new Sphere();
+                var pattern = new TestPattern();
+                pattern.Transform = Transformation.Scaling(2, 2, 2);
+                var c = pattern.PatternAtObject(shape, Point(2, 3, 4));
+                Assert.IsTrue(c == new Color(1,1.5,2));
+            }
+
+            {
+                var shape = new Sphere();
+                shape.Transform = Transformation.Scaling(2, 2, 2);
+                var pattern = new TestPattern();
+                pattern.Transform = Transformation.Translation(0.5, 1, 1.5);
+                var c = pattern.PatternAtObject(shape, Point(2.5, 3, 3.5));
+                Assert.IsTrue(c == new Color(0.75, 0.5, 0.25));
+            }
+
+            {
+                var pattern = new GradientPattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0.25,0,0)) == new Color(0.75,0.75,0.75));
+                Assert.IsTrue(pattern.PatternAt(Point(0.5,0,0)) == new Color(0.5,0.5,0.5));
+                Assert.IsTrue(pattern.PatternAt(Point(0.75,0,0)) == new Color(0.25,0.25,0.25));
+            }
+
+            {
+                var pattern = new RingPattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(1,0,0)) == Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,1)) == Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0.708,0, 0.708)) == Color.Black);
+            }
+
+            {
+                var pattern = new CheckerPattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0.99,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(1.01,0,0)) == Color.Black);
+            }
+            
+            {
+                var pattern = new CheckerPattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0, 0.99,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0, 1.01,0)) == Color.Black);
+            }
+            
+            {
+                var pattern = new CheckerPattern(Color.White, Color.Black);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,0.99)) == Color.White);
+                Assert.IsTrue(pattern.PatternAt(Point(0,0,1.01)) == Color.Black);
             }
         }
     }

@@ -78,5 +78,6 @@ namespace RayTracing
         }
 
         public static Color Black => new(0, 0, 0);
+        public static Color White => new(1, 1, 1);
     }
 }

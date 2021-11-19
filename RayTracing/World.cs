@@ -60,7 +60,7 @@ namespace RayTracing
             var shadowed = IsShadowed(comps.OverPoint);
             
             if (Light != null)
-                return comps.Object.Material.Lighting(Light.Value, comps.Point, comps.EyeV, comps.NormalV, shadowed);
+                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.Point, comps.EyeV, comps.NormalV, shadowed);
 
             throw new MemberAccessException("No Light is Specified");
         }
