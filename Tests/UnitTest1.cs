@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Numerics;
 using NUnit.Framework;
 using RayTracing;
 using RayTracing.Light;
@@ -7,6 +8,8 @@ using Tuple = RayTracing.Tuple;
 using static RayTracing.Tuple;
 using Color = RayTracing.Color;
 using Math = RayTracing.Math;
+using Matrix4x4 = RayTracing.Matrix4x4;
+using Plane = RayTracing.Shapes.Plane;
 
 namespace Tests
 {
@@ -1522,6 +1525,170 @@ namespace Tests
                 var comps = i.PrepareComputations(r);
                 Assert.IsTrue(comps.OverPoint.Z < -Constant.Epsilon/2.0);
                 Assert.IsTrue(comps.Point.Z > comps.OverPoint.Z);
+            }
+        }
+
+        [Test]
+        public void Chapter9()
+        {
+            {
+                var s = new TestShape();
+                Assert.IsTrue(s.Transform == Matrix4x4.Identity);
+            }
+
+            {
+                var s = new TestShape
+                {
+                    Transform = Transformation.Translation(2, 3, 4)
+                };
+                Assert.IsTrue(s.Transform == Transformation.Translation(2,3,4));
+            }
+
+            {
+                var s = new TestShape();
+                var m = s.Material;
+                Assert.IsTrue(m == new Material());
+            }
+
+            {
+                var s = new TestShape();
+                var m = new Material
+                {
+                    Ambient = 1
+                };
+                s.Material = m;
+                Assert.IsTrue(s.Material == m);
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new TestShape
+                {
+                    Transform = Transformation.Scaling(2, 2, 2)
+                };
+                var xs = s.Intersect(r);
+                Assert.IsTrue(s.SavedRay.Origin == Point(0,0,-2.5));
+                Assert.IsTrue(s.SavedRay.Direction == Vector(0,0,0.5));
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var s = new TestShape
+                {
+                    Transform = Transformation.Translation(5, 0, 0)
+                };
+                var xs = s.Intersect(r);
+                Assert.IsTrue(s.SavedRay.Origin == Point(-5,0,-5));
+                Assert.IsTrue(s.SavedRay.Direction == Vector(0,0,1));
+            }
+
+            {
+                var s = new TestShape();
+                s.Transform = Transformation.Translation(0, 1, 0);
+                var n = s.NormalAt(Point(0, 1.70711, -0.70711));
+                Assert.IsTrue(n == Vector(0,0.70711, -0.70711));
+            }
+
+            {
+                var s = new TestShape();
+                var m = Transformation.Scaling(1, 0.5, 1) * Transformation.RotationZ(Math.Pi / 5.0);
+                s.Transform = m;
+                var n = s.NormalAt(Point(0, 2.0.Sqrt() / 2.0, -2.0.Sqrt() / 2.0));
+                Assert.IsTrue(n == Vector(0, 0.97014, -0.24254));
+            }
+
+            {
+                var p = new Plane();
+                var n1 = p.NormalAt(Point(0, 0, 0));
+                var n2 = p.NormalAt(Point(10, 0, -10));
+                var n3 = p.NormalAt(Point(-5, 0, 150));
+                
+                Assert.IsTrue(n1 == Vector(0,1,0));
+                Assert.IsTrue(n2 == Vector(0,1,0));
+                Assert.IsTrue(n3 == Vector(0,1,0));
+            }
+
+            {
+                var p = new Plane();
+                var r = new Ray(Point(0, 10, 0), Vector(0, 0, 1));
+                var xs = p.Intersect(r);
+                Assert.IsTrue(xs.Length == 0);
+            }
+
+            {
+                var p = new Plane();
+                var r = new Ray(Point(0, 0, 0), Vector(0, 0, 1));
+                var xs = p.Intersect(r);
+                Assert.IsTrue(xs.Length == 0);
+            }
+
+            {
+                var p = new Plane();
+                var r = new Ray(Point(0, 1, 0), Vector(0, -1, 0));
+                var xs = p.Intersect(r);
+                Assert.IsTrue(xs.Length == 1);
+                Assert.IsTrue(xs[0].t.Is(1));
+                Assert.IsTrue(xs[0].Object == p);
+            }
+
+            {
+                var p = new Plane();
+                var r = new Ray(Point(0, -1, 0), Vector(0, 1, 0));
+                var xs = p.Intersect(r);
+                Assert.IsTrue(xs.Length == 1);
+                Assert.IsTrue(xs[0].t.Is(1));
+                Assert.IsTrue(xs[0].Object == p);
+            }
+
+            {
+                var c = new Color("#ffffff");
+                Assert.IsTrue(c.Red.Is(1));
+                Assert.IsTrue(c.Green.Is(1));
+                Assert.IsTrue(c.Blue.Is(1));
+            }
+
+            {
+                var floor = new Plane();
+                floor.Material.Color = new Color(0.4, 0.4, 0.3);
+
+                var s1 = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color("#0C9E4E")
+                    },
+                    Transform = Transformation.Translate(0, 1, 0).Scale(2, 2, 2).Build
+                };
+
+                var s2 = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color("#51A40B")
+                    },
+                    Transform = Transformation.Translate(5, 0.5, -1).Build
+                };
+
+                var s3 = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color("#9B7D0D")
+                    },
+                    Transform = Transformation.Translate(-4, 0.25, -1).Scale(0.5, 0.5, 0.5).Build
+                };
+
+                var w = new World();
+                w.Objects.Add(floor);
+                w.Objects.Add(s1);
+                w.Objects.Add(s2);
+                w.Objects.Add(s3);
+                w.Light = new PointLight(Point(-10, 10, -10), new Color(1,1,1));
+
+                var c = new Camera(200, 150, Math.Pi / 3.0);
+                c.Transform = Transformation.View(Point(0, 5, -12), Point(2, 2, 0), Vector(0, 1, 0));
+                var image = c.Render(w);
+                image.Save("img/Chapter9/1.png");
             }
         }
     }

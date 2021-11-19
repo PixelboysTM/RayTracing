@@ -1,4 +1,5 @@
 ﻿
+using System.ComponentModel.Design;
 using RayTracing;
 using RayTracing.Light;
 using RayTracing.Shapes;
@@ -81,7 +82,7 @@ namespace ImageRenderer
                 world.Light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
                 var camera = new Camera(1920, 1080, RayTracing.Math.Pi / 3.0);
                 camera.Transform = Transformation.View(Point(0, 1.5, -5), Point(0, 1, 0), Vector(0, 1, 0));
-
+                
                 var canvas = camera.Render(world);
                 canvas.Save("img/Chapter8/render.png");
         }

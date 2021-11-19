@@ -7,10 +7,10 @@ namespace RayTracing
 {
     public class World
     {
-        public List<Sphere> Objects { get; set; } = new();
+        public List<Shape> Objects { get; set; } = new();
         public PointLight? Light { get; set; }
 
-        public bool Contains(Sphere obj)
+        public bool Contains(Shape obj)
         {
             foreach (var o in Objects)
             {
@@ -23,7 +23,7 @@ namespace RayTracing
 
         public static World Default => new()
         {
-            Objects = new List<Sphere>
+            Objects = new List<Shape>
             {
                 new Sphere
                 {

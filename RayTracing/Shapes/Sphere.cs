@@ -2,19 +2,15 @@
 
 namespace RayTracing.Shapes
 {
-    public class Sphere
+    public class Sphere : Shape
     {
-        public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
-        public Material Material { get; set; } = new();
-        
-        public Intersection[] Intersect(Ray ray)
+
+        protected override Intersection[] LocalIntersect(Ray localRay)
         {
-            var ray2 = ray.Transform(Transform.Inverse);
+            var sphereToRay = localRay.Origin - Tuple.Point(0, 0, 0);
             
-            var sphereToRay = ray2.Origin - Tuple.Point(0, 0, 0);
-            
-            var a = ray2.Direction.Dot(ray2.Direction);
-            var b = 2 * ray2.Direction.Dot(sphereToRay);
+            var a = localRay.Direction.Dot(localRay.Direction);
+            var b = 2 * localRay.Direction.Dot(sphereToRay);
             var c = sphereToRay.Dot(sphereToRay) - 1;
 
             var discriminant = b * b - 4 * a * c;
@@ -28,13 +24,9 @@ namespace RayTracing.Shapes
             return new[] { new Intersection(t1, this), new Intersection(t2, this) };
         }
 
-        public Tuple NormalAt(Tuple point)
+        protected override Tuple LocalNormalAt(Tuple localPoint)
         {
-            var objectPoint = Transform.Inverse * point;
-            var objectNormal = (objectPoint - Tuple.Point(0, 0, 0));
-            var worldNormal = Transform.Inverse.Transpose * objectNormal;
-            worldNormal.W = 0;
-            return worldNormal.Normalised;
+            return (localPoint - Tuple.Point(0, 0, 0));
         }
 
         public static bool operator ==(Sphere left, Sphere right)

@@ -6,9 +6,9 @@ namespace RayTracing
     public class Intersection
     {
         public double t { get; init; }
-        public Sphere Object { get; init; }
+        public Shape Object { get; init; }
         
-        public Intersection(double t, Sphere obj)
+        public Intersection(double t, Shape obj)
         {
             this.t = t;
             Object = obj;
