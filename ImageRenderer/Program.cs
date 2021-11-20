@@ -15,6 +15,7 @@ namespace ImageRenderer
     {
         static void Main(string[] args)
         {
+            #if false
             var wall = new Plane
             {
                 Transform = Transformation.Translation(0, 0, 10) * Transformation.RotationX(1.5708),
@@ -67,8 +68,8 @@ namespace ImageRenderer
             };
             var image = camera.Render(w);
             image.Save("img/Chapter11/refraction_book_fixed.png");
-
-        #if false
+#endif
+        #if true
             //////////////////////
             var floor = new Plane
                 {
@@ -128,9 +129,12 @@ namespace ImageRenderer
                     Material = new Material
                     {
                         Color = new Color(0.5, 1, 0.1),
-                        Diffuse = 0.7,
-                        Specular = 0.3,
-                        Transparency = 0.5,
+                        Ambient = 0,
+                        Diffuse = 0,
+                        Specular = 0.9,
+                        Shininess = 300,
+                        Reflective = 0.9,
+                        Transparency = 0.9,
                         RefractiveIndex = 1.5
                     }
                 };
@@ -155,7 +159,7 @@ namespace ImageRenderer
                 world.Objects.Add(right);
 
                 world.Light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
-                var camera = new Camera(192, 108, Math.Pi / 2.0);
+                var camera = new Camera(1920*2, 1080*2, Math.Pi / 2.0);
                 camera.Transform = Transformation.View(Point(0, 1.5, -5), Point(0, 1, 0), Vector(0, 1, 0));
                 
                 var canvas = camera.Render(world);
