@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.Numerics;
 using NUnit.Framework;
@@ -1950,6 +1951,168 @@ namespace Tests
                 var comps = i.PrepareComputations(r);
                 var color = w.ReflectedColor(comps, 0);
                 Assert.IsTrue(color == Color.Black);
+            }
+
+            {
+                var m = new Material();
+                Assert.IsTrue(m.Transparency.Is(0));
+                Assert.IsTrue(m.RefractiveIndex.Is(1));
+            }
+
+            {
+                var s = Sphere.GlassSphere;
+                Assert.IsTrue(s.Transform == Matrix4x4.Identity);
+                Assert.IsTrue(s.Material.Transparency.Is(1));
+                Assert.IsTrue(s.Material.RefractiveIndex.Is(1.5));
+            }
+
+            {
+                var A = Sphere.GlassSphere;
+                A.Transform = Transformation.Scaling(2, 2, 2);
+                A.Material.RefractiveIndex = 1.5;
+                
+                var B = Sphere.GlassSphere;
+                B.Transform = Transformation.Translation(0, 0, -0.25);
+                B.Material.RefractiveIndex = 2;
+                
+                var C = Sphere.GlassSphere;
+                B.Transform = Transformation.Translation(0, 0, 0.25);
+                C.Material.RefractiveIndex = 2.5;
+
+                var r = new Ray(Point(0, 0, -4), Vector(0, 0, 1));
+                var xs = Intersection.Combine(new Intersection(2, A), new Intersection(2.75, B),
+                    new Intersection(3.25, C), new Intersection(4.75, B), new Intersection(5.25, C),
+                    new Intersection(6, A));
+
+                {
+                    var comps = xs[0].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(1.0));
+                    Assert.IsTrue(comps.N2.Is(1.5));
+                }
+                
+                {
+                    var comps = xs[1].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(1.5));
+                    Assert.IsTrue(comps.N2.Is(2.0));
+                }
+                
+                {
+                    var comps = xs[2].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(2.0));
+                    Assert.IsTrue(comps.N2.Is(2.5));
+                }
+                
+                {
+                    var comps = xs[3].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(2.5));
+                    Assert.IsTrue(comps.N2.Is(2.5));
+                }
+                
+                {
+                    var comps = xs[4].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(2.5));
+                    Assert.IsTrue(comps.N2.Is(1.5));
+                }
+                
+                {
+                    var comps = xs[5].PrepareComputations(r, xs);
+                    Assert.IsTrue(comps.N1.Is(1.5));
+                    Assert.IsTrue(comps.N2.Is(1.0));
+                }
+            }
+
+            {
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var shape = Sphere.GlassSphere;
+                shape.Transform = Transformation.Translation(0, 0, 1);
+                var i = new Intersection(5, shape);
+                var xs = Intersection.Combine(i);
+                var comps = i.PrepareComputations(r, xs);
+                Assert.IsTrue(comps.UnderPoint.Z > Constant.Epsilon/2.0);
+                Assert.IsTrue(comps.Point.Z < comps.UnderPoint.Z);
+            }
+
+            {
+                var w = World.Default;
+                var shape = w.Objects[0];
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var xs = Intersection.Combine(new Intersection(4, shape), new Intersection(6, shape));
+                var comps = xs[0].PrepareComputations(r, xs);
+                var c = w.RefractedColor(comps, Constant.MaxRecursionDepth);
+                Assert.IsTrue(c == new Color(0,0,0));
+            }
+            
+            {
+                var w = World.Default;
+                var shape = w.Objects[0];
+                shape.Material.Transparency = 1.0;
+                shape.Material.RefractiveIndex = 1.5;
+                var r = new Ray(Point(0, 0, -5), Vector(0, 0, 1));
+                var xs = Intersection.Combine(new Intersection(4, shape), new Intersection(6, shape));
+                var comps = xs[0].PrepareComputations(r, xs);
+                var c = w.RefractedColor(comps, 0);
+                Assert.IsTrue(c == new Color(0,0,0));
+            }
+            
+            {
+                var w = World.Default;
+                var shape = w.Objects[0];
+                shape.Material.Transparency = 1.0;
+                shape.Material.RefractiveIndex = 1.5;
+                var r = new Ray(Point(0, 0, 2.0.Sqrt()/2.0), Vector(0, 1, 0));
+                var xs = Intersection.Combine(new Intersection(-2.0.Sqrt()/2.0, shape), new Intersection(2.0.Sqrt()/2.0, shape));
+                var comps = xs[1].PrepareComputations(r, xs);
+                var c = w.RefractedColor(comps, Constant.MaxRecursionDepth);
+                Assert.IsTrue(c == new Color(0,0,0));
+            }
+
+            {
+                var w = World.Default;
+                var A = w.Objects[0];
+                A.Material.Ambient = 1.0;
+                A.Material.Pattern = new TestPattern();
+
+                var B = w.Objects[1];
+                B.Material.Transparency = 1.0;
+                B.Material.RefractiveIndex = 1.5;
+
+                var r = new Ray(Point(0, 0, 0.1), Vector(0, 1, 0));
+                var xs = Intersection.Combine(new Intersection(-0.9899, A), new Intersection(-0.4899, B),
+                    new Intersection(0.4899, B), new Intersection(0.9899, A));
+                var comps = xs[2].PrepareComputations(r, xs);
+                var c = w.RefractedColor(comps, Constant.MaxRecursionDepth);
+                Assert.IsTrue(c == new Color(0, 0.99887, 0.04721)); // Values modified original page 277
+            }
+
+            {
+                var w = World.Default;
+                var floor = new Plane
+                {
+                    Transform = Transformation.Translation(0, -1, 0),
+                    Material = new Material
+                    {
+                        Transparency = 0.5,
+                        RefractiveIndex = 1.5
+                    }
+                };
+                w.Objects.Add(floor);
+
+                var ball = new Sphere
+                {
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0, 0),
+                        Ambient = 0.5
+                    },
+                    Transform = Transformation.Translation(0, -3.5, -0.5)
+                };
+                w.Objects.Add(ball);
+
+                var r = new Ray(Point(0, 0, -3), Vector(0, -2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0));
+                var xs = Intersection.Combine(new Intersection(2.0.Sqrt(), floor));
+                var comps = xs[0].PrepareComputations(r, xs);
+                var color = w.ShadeHit(comps);
+                Assert.IsTrue(color == new Color(0.93642, 0.68642, 0.68642));
             }
         }
     }

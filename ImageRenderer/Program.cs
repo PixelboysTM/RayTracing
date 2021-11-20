@@ -15,6 +15,64 @@ namespace ImageRenderer
     {
         static void Main(string[] args)
         {
+            var wall = new Plane
+            {
+                Transform = Transformation.RotationX(1.5708) * Transformation.Translation(0, 0, 12),
+                Material = new Material
+                {
+                    Pattern = new CheckerPattern(new Color(0.15, 0.15, 0.15), new Color(0.85, 0.85, 0.85))
+                    {
+                        Transform = Transformation.Scaling(0.2,0.2,0.2)
+                    },
+                    Ambient = 0.8,
+                    Diffuse = 0.2,
+                    Specular = 0
+                }
+            };
+            var glass = new Sphere
+            {
+                Material = new Material
+                {
+                    Color = Color.White,
+                    Ambient = 0,
+                    Diffuse = 0,
+                    Specular = 0.9,
+                    Shininess = 300,
+                    Reflective = 0.9,
+                    Transparency = 0.9,
+                    RefractiveIndex = 1.5
+                }
+            };
+            var hollow = new Sphere
+            {
+                Transform = Transformation.Scaling(0.5, 0.5, 0.5),
+                Material = new Material
+                {
+                    Ambient = 0,
+                    Diffuse = 0,
+                    Specular = 0.9,
+                    Shininess = 300,
+                    Reflective = 0.9,
+                    Transparency = 0.9,
+                    RefractiveIndex = 1.0000034
+                }
+            };
+            
+            var w = new World();
+            w.Objects.Add(wall);
+            w.Objects.Add(glass);
+            // w.Objects.Add(hollow);
+            w.Light = new PointLight(Point(2, 10, -5), new Color(0.9, 0.9, 0.9));
+
+            var camera = new Camera(50, 50, 0.45)
+            {
+                Transform = Transformation.View(Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0))
+            };
+            var image = camera.Render(w);
+            image.Save("img/Chapter11/refraction_book_small.png");
+
+        #if false
+            //////////////////////
             var floor = new Plane
                 {
                     Transform = Transformation.Scaling(10, 0.01, 10),
@@ -27,7 +85,8 @@ namespace ImageRenderer
 
                 var leftWall = new Plane
                 {
-                    Transform = Transformation.Translation(0, 0, 5) * Transformation.RotationY(-RayTracing.Math.Pi / 4.0) *
+                    Transform =
+ Transformation.Translation(0, 0, 5) * Transformation.RotationY(-RayTracing.Math.Pi / 4.0) *
                                 Transformation.RotationX(RayTracing.Math.Pi / 2.0) * Transformation.Scaling(10, 0.01, 10), //NOTE: If not working Check Order on page 195
                     Material = new Material
                     {
@@ -39,7 +98,8 @@ namespace ImageRenderer
 
                 var rightWall = new Plane
                 {
-                    Transform = Transformation.Translation(0, 0, 5) * Transformation.RotationY(RayTracing.Math.Pi / 4.0) *
+                    Transform =
+ Transformation.Translation(0, 0, 5) * Transformation.RotationY(RayTracing.Math.Pi / 4.0) *
                                 Transformation.RotationX(RayTracing.Math.Pi / 2.0), //NOTE: If not working Check Order on page 195
                     Material = new Material
                     {
@@ -72,7 +132,9 @@ namespace ImageRenderer
                     {
                         Color = new Color(0.5, 1, 0.1),
                         Diffuse = 0.7,
-                        Specular = 0.3
+                        Specular = 0.3,
+                        Transparency = 0.5,
+                        RefractiveIndex = 1.5
                     }
                 };
 
@@ -96,11 +158,12 @@ namespace ImageRenderer
                 world.Objects.Add(right);
 
                 world.Light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
-                var camera = new Camera(192, 108, RayTracing.Math.Pi / 2.0);
+                var camera = new Camera(192, 108, Math.Pi / 2.0);
                 camera.Transform = Transformation.View(Point(0, 1.5, -5), Point(0, 1, 0), Vector(0, 1, 0));
                 
                 var canvas = camera.Render(world);
-                canvas.Save("img/Chapter11/reflection2.png");
+                canvas.Save("img/Chapter11/refraction2.png");
+        #endif
         }
     }
 }

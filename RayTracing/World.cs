@@ -60,7 +60,7 @@ namespace RayTracing
             var shadowed = IsShadowed(comps.OverPoint);
             
             if (Light != null)
-                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.OverPoint, comps.EyeV, comps.NormalV, shadowed) + ReflectedColor(comps, remaining);
+                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.OverPoint, comps.EyeV, comps.NormalV, shadowed) + ReflectedColor(comps, remaining) + RefractedColor(comps, remaining);
 
             throw new MemberAccessException("No Light is Specified");
         }
@@ -72,7 +72,7 @@ namespace RayTracing
             if (hit is null)
                 return Color.Black;
 
-            var comps = hit.PrepareComputations(ray);
+            var comps = hit.PrepareComputations(ray, xs);
             var c = ShadeHit(comps, remaining);
             return c;
         }
@@ -102,6 +102,30 @@ namespace RayTracing
             var reflectedRay = new Ray(comps.OverPoint, comps.ReflectV);
             var color = ColorAt(reflectedRay, remaining-1);
             return color * comps.Object.Material.Reflective;
+        }
+
+        public Color RefractedColor(Computations comps, int remaining)
+        {
+            if (comps.Object.Material.Transparency.Is(0) || remaining == 0)
+                return Color.Black;
+
+            var nRatio = comps.N1 / comps.N2;
+
+            var cosI = comps.EyeV.Dot(comps.NormalV);
+
+            var sin2T = nRatio * nRatio * (1 - cosI * cosI);
+            if (sin2T > 1.0)
+                return Color.Black;
+
+            var cosT = (1.0 - sin2T).Sqrt();
+
+            var direction = comps.NormalV * (nRatio * cosI - cosT) - comps.EyeV * nRatio;
+
+            var refractedRay = new Ray(comps.UnderPoint, direction);
+
+            var color = ColorAt(refractedRay, remaining - 1) * comps.Object.Material.Transparency;
+            
+            return color;
         }
     }
 }

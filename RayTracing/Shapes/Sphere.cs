@@ -42,5 +42,18 @@ namespace RayTracing.Shapes
         {
             return !(left == right);
         }
+
+#region STATIC
+
+        public static Sphere GlassSphere => new()
+        {
+            Material = new Material
+            {
+                Transparency = 1.0,
+                RefractiveIndex = 1.5
+            }
+        };
+
+#endregion
     }
 }

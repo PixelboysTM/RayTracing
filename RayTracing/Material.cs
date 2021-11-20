@@ -13,6 +13,8 @@ namespace RayTracing
         public double Specular { get; set; } = 0.9;
         public double Shininess { get; set; } = 200.0;
         public double Reflective { get; set; } = 0.0;
+        public double Transparency { get; set; } = 0.0;
+        public double RefractiveIndex { get; set; } = 1.0;
 
         public static bool operator ==(Material left, Material right)
         {
@@ -20,8 +22,11 @@ namespace RayTracing
                 return true;
             if (left is null || right is null)
                 return false;
-            return left.Color == right.Color && left.Ambient.Is(right.Ambient) && left.Diffuse.Is(right.Diffuse) && left.Specular.Is(right.Specular) &&
-                   left.Shininess.Is(right.Shininess) && left.Pattern == right.Pattern;
+            return left.Color == right.Color && left.Ambient.Is(right.Ambient) && left.Diffuse.Is(right.Diffuse) &&
+                   left.Specular.Is(right.Specular) &&
+                   left.Shininess.Is(right.Shininess) && left.Pattern == right.Pattern &&
+                   left.Reflective.Is(right.Reflective) && left.Transparency.Is(right.Transparency) &&
+                   left.RefractiveIndex.Is(right.RefractiveIndex);
         }
 
         public static bool operator !=(Material left, Material right)
