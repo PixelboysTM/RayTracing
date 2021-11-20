@@ -59,10 +59,25 @@ namespace RayTracing
         {
             var shadowed = IsShadowed(comps.OverPoint);
             
-            if (Light != null)
-                return comps.Object.Material.Lighting(comps.Object, Light.Value, comps.OverPoint, comps.EyeV, comps.NormalV, shadowed) + ReflectedColor(comps, remaining) + RefractedColor(comps, remaining);
+            if (Light == null)
+                throw new MemberAccessException("No Light is Specified");
 
-            throw new MemberAccessException("No Light is Specified");
+            var surface = comps.Object.Material.Lighting(comps.Object, Light.Value, comps.OverPoint, comps.EyeV,
+                comps.NormalV, shadowed);
+
+            var reflected = ReflectedColor(comps, remaining);
+            var refracted = RefractedColor(comps, remaining);
+
+            var material = comps.Object.Material;
+            if (material.Reflective > 0 && material.Transparency > 0)
+            {
+                var reflectance = comps.Schlick();
+                return surface + reflected * reflectance + refracted * (1 - reflectance);
+            }
+
+            return surface + reflected + refracted;
+
+
         }
 
         public Color ColorAt(Ray ray, int remaining = Constant.MaxRecursionDepth)

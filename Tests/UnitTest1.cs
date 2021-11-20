@@ -1,6 +1,7 @@
 using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.Numerics;
+using System.Xml.Linq;
 using NUnit.Framework;
 using RayTracing;
 using RayTracing.Light;
@@ -2113,6 +2114,66 @@ namespace Tests
                 var comps = xs[0].PrepareComputations(r, xs);
                 var color = w.ShadeHit(comps);
                 Assert.IsTrue(color == new Color(0.93642, 0.68642, 0.68642));
+            }
+
+            {
+                var shape = Sphere.GlassSphere;
+                var r = new Ray(Point(0, 0, 2.0.Sqrt() / 2.0), Vector(0, 1, 0));
+                var xs = Intersection.Combine(new Intersection(-2.0.Sqrt() / 2.0, shape),
+                    new Intersection(2.0.Sqrt() / 2.0, shape));
+                var comps = xs[1].PrepareComputations(r, xs);
+                var reflectance = comps.Schlick();
+                Assert.IsTrue(reflectance.Is(1.0));
+            }
+
+            {
+                var shape = Sphere.GlassSphere;
+                var r = new Ray(Point(0, 0, 0), Vector(0, 1, 0));
+                var xs = Intersection.Combine(new Intersection(-1, shape), new Intersection(1, shape));
+                var comps = xs[1].PrepareComputations(r, xs);
+                var reflectance = comps.Schlick();
+                Assert.IsTrue(reflectance.Is(0.04));
+            }
+
+            {
+                var shape = Sphere.GlassSphere;
+                var r = new Ray(Point(0, 0.99, -2), Vector(0, 0, 1));
+                var xs = Intersection.Combine(new Intersection(1.8589, shape));
+                var comps = xs[0].PrepareComputations(r, xs);
+                var reflectance = comps.Schlick();
+                Assert.IsTrue(reflectance.Is(0.48873));
+            }
+
+            {
+                var w = World.Default;
+                var r = new Ray(Point(0, 0, -3), Vector(0, -2.0.Sqrt() / 2.0, 2.0.Sqrt() / 2.0));
+                var floor = new Plane
+                {
+                    Transform = Transformation.Translation(0, -1, 0),
+                    Material = new Material
+                    {
+                        Reflective = 0.5,
+                        Transparency = 0.5,
+                        RefractiveIndex = 1.5
+                    }
+                };
+                w.Objects.Add(floor);
+
+                var ball = new Sphere
+                {
+                    Transform = Transformation.Translation(0, -3.5, -0.5),
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0, 0),
+                        Ambient = 0.5
+                    }
+                };
+                w.Objects.Add(ball);
+
+                var xs = Intersection.Combine(new Intersection(2.0.Sqrt(), floor));
+                var comps = xs[0].PrepareComputations(r, xs);
+                var color = w.ShadeHit(comps, Constant.MaxRecursionDepth);
+                Assert.IsTrue(color == new Color(0.93391, 0.69643, 0.69243));
             }
         }
     }

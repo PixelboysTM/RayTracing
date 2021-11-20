@@ -159,11 +159,11 @@ namespace ImageRenderer
                 world.Objects.Add(right);
 
                 world.Light = new PointLight(Point(-10, 10, -10), new Color(1, 1, 1));
-                var camera = new Camera(1920*2, 1080*2, Math.Pi / 2.0);
+                var camera = new Camera(1920, 1080, Math.Pi / 2.0);
                 camera.Transform = Transformation.View(Point(0, 1.5, -5), Point(0, 1, 0), Vector(0, 1, 0));
                 
                 var canvas = camera.Render(world);
-                canvas.Save("img/Chapter11/refraction2.png");
+                canvas.Save("img/Chapter11/refraction3.png");
         #endif
         }
     }
