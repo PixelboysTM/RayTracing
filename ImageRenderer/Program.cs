@@ -17,13 +17,10 @@ namespace ImageRenderer
         {
             var wall = new Plane
             {
-                Transform = Transformation.RotationX(1.5708) * Transformation.Translation(0, 0, 12),
+                Transform = Transformation.Translation(0, 0, 10) * Transformation.RotationX(1.5708),
                 Material = new Material
                 {
-                    Pattern = new CheckerPattern(new Color(0.15, 0.15, 0.15), new Color(0.85, 0.85, 0.85))
-                    {
-                        Transform = Transformation.Scaling(0.2,0.2,0.2)
-                    },
+                    Pattern = new CheckerPattern(new Color(0.15, 0.15, 0.15), new Color(0.85, 0.85, 0.85)),
                     Ambient = 0.8,
                     Diffuse = 0.2,
                     Specular = 0
@@ -64,12 +61,12 @@ namespace ImageRenderer
             // w.Objects.Add(hollow);
             w.Light = new PointLight(Point(2, 10, -5), new Color(0.9, 0.9, 0.9));
 
-            var camera = new Camera(50, 50, 0.45)
+            var camera = new Camera(300, 300, 0.45)
             {
                 Transform = Transformation.View(Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0))
             };
             var image = camera.Render(w);
-            image.Save("img/Chapter11/refraction_book_small.png");
+            image.Save("img/Chapter11/refraction_book_fixed.png");
 
         #if false
             //////////////////////
