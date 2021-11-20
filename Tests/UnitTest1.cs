@@ -2176,5 +2176,99 @@ namespace Tests
                 Assert.IsTrue(color == new Color(0.93391, 0.69643, 0.69243));
             }
         }
+
+        [Test]
+        public void Chapter12()
+        {
+            {
+                var c = new Cube();
+
+                var examples = new[]
+                {
+                    (Point(5, 0.5, 0), Vector(-1, 0, 0), 4, 6),
+                    (Point(-5, 0.5, 0), Vector(1, 0, 0), 4, 6),
+                    (Point(0.5, 5, 0), Vector(0, -1, 0), 4, 6),
+                    (Point(0.5, -5, 0), Vector(0, 1, 0), 4, 6),
+                    (Point(0.5, 0, 5), Vector(0, 0, -1), 4, 6),
+                    (Point(0.5, 0, -5), Vector(0, 0, 1), 4, 6),
+                    (Point(0, 0.5, 0), Vector(0, 0, 1), -1, 1)
+                };
+
+                foreach (var valueTuple in examples)
+                {
+                    var r = new Ray(valueTuple.Item1, valueTuple.Item2);
+                    var xs = c.Intersect(r);
+                    Assert.IsTrue(xs.Length == 2);
+                    Assert.IsTrue(xs[0].t.Is(valueTuple.Item3));
+                    Assert.IsTrue(xs[1].t.Is(valueTuple.Item4));
+                }
+            }
+
+            {
+                var c = new Cube();
+
+                var examples = new[]
+                {
+                    (Point(-2, 0, 0), Vector(0.2673, 0.5345, 0.8018)),
+                    (Point(0, -2, 0), Vector(0.8018, 0.2673, 0.5345)),
+                    (Point(0, 0, -2), Vector(0.5345, 0.8018, 0.2673)),
+                    (Point(2, 0, 2), Vector(0, 0, -1)),
+                    (Point(0, 2, 2), Vector(0, -1, 0)),
+                    (Point(2, 2, 0), Vector(-1, 0, 0)),
+                };
+
+                foreach (var valueTuple in examples)
+                {
+                    var r = new Ray(valueTuple.Item1, valueTuple.Item2);
+                    var xs = c.Intersect(r);
+                    Assert.IsTrue(xs.Length == 0);
+                }
+            }
+
+            {
+                var c = new Cube();
+                
+                var examples = new[]
+                {
+                    (Point(1, 0.5, -0.8), Vector(1,0,0)),
+                    (Point(-1, -0.2, 0.9), Vector(-1,0,0)),
+                    (Point(-0.4, 1, -0.1), Vector(0,1,0)),
+                    (Point(0.3, -1, -0.7), Vector(0,-1,0)),
+                    (Point(-0.6, 0.3, 1), Vector(0,0,1)),
+                    (Point(0.4, 0.4, -1), Vector(0,0,-1)),
+                    (Point(1,1,1), Vector(1,0,0)),
+                    (Point(-1,-1,-1), Vector(-1,0,0)),
+                };
+                foreach (var valueTuple in examples)
+                {
+                    var p = valueTuple.Item1;
+                    var normal = c.NormalAt(p);
+                    Assert.IsTrue(normal == valueTuple.Item2);
+                }
+            }
+
+            {
+                var w = new World();
+                var c = new Cube
+                {
+                    Material = new Material
+                    {
+                        Color = new Color(1, 0, 0)
+                    },
+                    Transform = Transformation.RotationY(Math.DegToRad(20))
+                };
+                w.Objects.Add(c);
+
+                w.Light = new PointLight(Point(-10, 10, -10), Color.White);
+
+                var camera = new Camera(100, 80, Math.Pi / 2.0)
+                {
+                    Transform = Transformation.View(Point(0, 4, -6), Point(0, 0, 0), Vector(0, 1, 0))
+                };
+
+                var image = camera.Render(w);
+                image.Save("img/Chapter12/1.png");
+            }
+        }
     }
 }
